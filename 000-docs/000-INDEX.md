@@ -12,6 +12,7 @@
 | 008 | 008-OD-GUID-configuration-reference.md | OD — Operator Documentation | GUID | Configuration reference — capabilities.yml and grants.yml format, fields, validation |
 | 009 | 009-OD-GUID-operator-workflow.md | OD — Operator Documentation | GUID | Operator workflow guide — add/revoke capabilities, lockdown, audit inspection |
 | 010 | 010-OD-GUID-consumer-integration.md | OD — Operator Documentation | GUID | Consumer integration guide — gem dependency, initialization, evaluate, result handling |
+| 011 | 011-PP-PLAN-expansion-roadmap.md | PP — Product & Planning | PLAN | v2 extension points, confirmed out-of-scope, integration status, remaining risks |
 
 ## Category Reference
 

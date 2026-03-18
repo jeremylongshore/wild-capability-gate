@@ -4,7 +4,7 @@
 **Filed as:** `001-PP-PLAN-repo-blueprint.md`
 **Repo:** `wild-capability-gate`
 **Archetype:** D — Coordination / Registry
-**Status:** Active — Phase 0
+**Status:** Active — v1 complete
 **Last updated:** 2026-03-17
 
 ---
@@ -52,7 +52,7 @@ Capability evaluations are session-scoped. A capability granted at the start of 
 If a capability is not explicitly granted, it is denied. Unknown capabilities are denied. Expired or revoked grants are denied. The gate errs on the side of refusal.
 
 **Reusable interface for consuming repos.**
-The gate exposes a clean, minimal interface: `can?(caller, capability, context) → allowed | denied(reason)`. Consuming repos call this interface before executing privileged tools. The interface is stable enough that repos can design against it before the gate is fully implemented.
+The gate exposes a clean, minimal interface: `gate.evaluate(caller:, capability:, context:) → EvaluationResult`. Consuming repos call this interface before executing privileged tools. The interface is stable and documented in `006-AT-STND-interface-contract.md`.
 
 ---
 
@@ -85,7 +85,7 @@ There is no dashboard, no admin panel, no web interface. The gate is a programma
 
 ### Key use cases
 
-1. **Check tool access before execution** — a consuming repo calls `can?(caller, :privileged_introspection, context)` before running a privileged query tool.
+1. **Check tool access before execution** — a consuming repo calls `gate.evaluate(caller:, capability:, context:)` before running a privileged query tool.
 2. **Deny and explain** — when access is denied, the gate returns a reason: "capability not granted," "prerequisite not met," "caller not authorized." The consuming repo can surface this to the agent.
 3. **Audit a session's access decisions** — an operator reviews the gate's log for a session to see which capabilities were checked, granted, or denied.
 4. **Configure capability prerequisites** — an operator sets a prerequisite that capability `:admin_tools` requires attestation document `safety-attestation-admin.md` to exist before the capability can be granted.
@@ -114,10 +114,10 @@ Every capability evaluation — whether granted or denied — produces a structu
 **Public interface**
 The minimal, stable interface consuming repos call:
 ```ruby
-gate = Wild::CapabilityGate.new(config)
-result = gate.evaluate(caller:, capability:, context:)
+gate = Wild::CapabilityGate.new(config_path: "config/capability_gate")
+result = gate.evaluate(caller: "service-account:agent", capability: :privileged_introspection)
 result.allowed?   # => true/false
-result.reason     # => nil or denial reason string
+result.reason     # => nil or :unknown_capability, :not_granted, :prerequisite_not_met, :evaluation_error
 ```
 
 ### Language
@@ -187,10 +187,18 @@ A credible v1 should do the following:
 
 ## 12. Current Status
 
-This repo is in **Phase 0 — planning and structural foundation**. No application code exists.
+**v1 complete.** All 10 epics are implemented and verified:
+
+- Capability registry, rule evaluator, prerequisite checking, session caching, audit trail, public interface
+- Adversarial safety tests proving all governance rules and defect conditions
+- Operator docs, config reference, integration guide, and production-ready README
+- 224 examples, 0 failures; CI with Gemini code review
+
+See `005-PP-PLAN-epic-build-plan.md` for the full execution history.
 
 ---
 
-## 13. Immediate Next Step
+## 13. Next Steps
 
-The 10-epic build plan, followed by repo-local Beads initialization and task creation.
+- Consumer integration: `wild-rails-safe-introspection-mcp` and `wild-admin-tools-mcp` integrate against the stable interface
+- Extension points documented in `011-PP-PLAN-expansion-roadmap.md` for v2 planning
