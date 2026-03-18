@@ -1,31 +1,133 @@
 # wild-capability-gate
 
-Governed access control for sensitive AI tool capabilities across the Wild ecosystem.
+Governed access control for sensitive AI tool capabilities.
 
-## What This Is
+## What it does
 
-A Ruby gem that provides prerequisite-based capability gating for AI tool execution. Consuming repos call the gate before running privileged tools. The gate evaluates whether the caller has the required capability, checks that prerequisites are satisfied, and returns an allowed/denied result with a reason.
+A Ruby gem that gates access to privileged operations. Before a consuming repo executes a sensitive tool, it asks the gate: "Is this caller allowed to do this?" The gate checks grants, evaluates prerequisites, and returns an allowed/denied result.
 
 Every evaluation is:
-- **Fail-closed** — errors result in denial, not permission
-- **Prerequisite-enforced** — capabilities can require proof before granting
-- **Audited** — every evaluation is logged with caller, capability, result, and context
-- **Session-scoped** — evaluations are cached per session, no cross-session persistence
+- **Fail-closed** — errors produce denial, never permission
+- **Prerequisite-enforced** — capabilities can require proof (attestation files, config flags) before granting
+- **Audited** — every decision is logged as a structured JSON Lines event
+- **Immutable at runtime** — configuration is loaded at startup and cannot be changed through the API
 
-## Part of the Wild Ecosystem
+## What it does not do
 
-This is the cross-cutting access control layer for the [wild](../) ecosystem. It is consumed by `wild-rails-safe-introspection-mcp`, `wild-admin-tools-mcp`, and potentially other repos.
+- Not a full IAM platform. No users, groups, roles, or org hierarchies.
+- Not a policy engine. It gates capabilities, not arbitrary decisions.
+- Not an HTTP service. It's a library consumed in-process.
+- Not a UI. Operator visibility comes from audit logs and config inspection.
 
-See `../CLAUDE.md` for ecosystem-level context.
+## Core concepts
+
+**Capability** — a named, scoped access grant for a category of privileged operation (e.g., `:privileged_introspection`, `:admin_tools`). Each has a risk level (`standard`, `elevated`, `critical`) and optional prerequisites.
+
+**Prerequisite** — a condition that must be true before a capability is granted, even if the caller has an explicit grant. v1 supports `file_exists` (a file must be present) and `config_value` (a runtime config key must match an expected value).
+
+**Grant** — a mapping from a caller identity string to a list of capabilities. Grants are configured in YAML. The wildcard caller `"*"` grants to all callers.
+
+**Denial** — the default. Unknown capabilities are denied. Unconfigured callers are denied. Failed prerequisites are denied. Errors are denied. Every denial carries a reason symbol and human-readable details.
+
+## Quick start
+
+```ruby
+require 'wild/capability_gate'
+
+# Initialize from a config directory containing capabilities.yml and grants.yml
+gate = Wild::CapabilityGate.new(
+  config_path: "config/capability_gate",
+  audit_log_path: "log/capability_gate.jsonl"
+)
+
+# Check before executing a privileged operation
+result = gate.evaluate(
+  caller: "service-account:introspection-agent",
+  capability: :privileged_introspection
+)
+
+if result.allowed?
+  # proceed
+else
+  puts "Denied: #{result.reason} — #{result.details}"
+end
+```
+
+## Configuration
+
+The gate reads two YAML files from the config directory:
+
+**capabilities.yml** — defines what capabilities exist:
+
+```yaml
+capabilities:
+  - name: basic_introspection
+    description: "Read-only schema inspection"
+    risk_level: standard
+    prerequisites: []
+
+  - name: privileged_introspection
+    description: "Full runtime introspection including live data"
+    risk_level: elevated
+    prerequisites:
+      - type: file_exists
+        path: "config/safety-attestation-introspection.md"
+```
+
+**grants.yml** — defines who can use them:
+
+```yaml
+grants:
+  - caller: "service-account:introspection-agent"
+    capabilities:
+      - basic_introspection
+      - privileged_introspection
+
+  - caller: "*"
+    capabilities:
+      - basic_introspection
+```
+
+See [Configuration Reference](000-docs/008-OD-GUID-configuration-reference.md) for full details.
+
+## Safety posture
+
+The gate defaults to denial. Five governance rules are enforced and proven by adversarial tests:
+
+1. **Fail-closed** — any error during evaluation returns denial
+2. **No implicit grants** — everything must be explicitly configured
+3. **Prerequisites enforced** — no skip mode, no override, no escape hatch
+4. **Immutable at runtime** — configuration cannot be modified through the public interface
+5. **Audit complete** — every evaluation produces a structured log entry
+
+All 7 safety defect conditions from the governance model have adversarial tests confirming they cannot be triggered.
+
+## Running tests
+
+```bash
+bundle install
+bundle exec rspec       # 224 examples, 0 failures
+bundle exec rubocop     # 42 files, 0 offenses
+```
 
 ## Status
 
-**Epic 8 complete** — all 5 governance rules and all 7 safety defect conditions from the governance model are verified by adversarial tests. One fail-closed gap was found and fixed (nil capability in error handler). The gate is proven safe for consumer integration. Ready for Epic 9 (MVP Packaging).
+**v1 MVP complete** — capability registry, rule evaluator, prerequisite checking, session caching, audit trail, public interface, and safety testing are all implemented and verified.
 
-- Canonical blueprint: `000-docs/001-PP-PLAN-repo-blueprint.md`
-- Capability model: `000-docs/002-AT-STND-capability-model.md`
-- Build plan: `000-docs/005-PP-PLAN-epic-build-plan.md`
-- Task tracking: Beads (repo-local, run `bd list`)
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Configuration Reference](000-docs/008-OD-GUID-configuration-reference.md) | Every config field, validation rule, and prerequisite type |
+| [Operator Workflow Guide](000-docs/009-OD-GUID-operator-workflow.md) | Add capabilities, modify grants, lockdown, inspect audit logs |
+| [Consumer Integration Guide](000-docs/010-OD-GUID-consumer-integration.md) | How to integrate from a consuming repo |
+| [Interface Contract](000-docs/006-AT-STND-interface-contract.md) | Public API signatures and stability guarantees |
+| [Capability Model](000-docs/002-AT-STND-capability-model.md) | Data structures and evaluation semantics |
+| [Governance Model](000-docs/003-TQ-STND-governance-model.md) | Safety rules and defect definitions |
+
+## Part of the Wild ecosystem
+
+This is the cross-cutting access control layer for the [Wild](https://github.com/jeremylongshore) ecosystem of AI operational tooling. It is consumed by `wild-rails-safe-introspection-mcp`, `wild-admin-tools-mcp`, and other repos that need governed capability gating.
 
 ## License
 
