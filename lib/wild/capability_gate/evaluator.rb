@@ -17,29 +17,38 @@ module Wild
     class Evaluator
       require_relative 'evaluator/grant_loader'
 
-      def initialize(registry:, grants:)
+      def initialize(registry:, grants:, audit_writer: nil, session_id: nil)
         @registry = registry
         @grants = Array(grants).freeze
+        @audit_writer = audit_writer
+        @session_id = session_id
         freeze
       end
 
-      def self.from_files(capabilities_path:, grants_path:)
+      def self.from_files(capabilities_path:, grants_path:, audit_writer: nil, session_id: nil)
         registry = Registry.from_file(capabilities_path)
         grants = GrantLoader.load_file(grants_path)
-        new(registry: registry, grants: grants)
+        new(registry: registry, grants: grants, audit_writer: audit_writer, session_id: session_id)
       end
 
       # Evaluate whether the caller is granted the named capability.
       # Context provides runtime values for prerequisite checks (e.g., config values).
       # Returns an EvaluationResult — always, never raises.
+      #
+      # When an audit_writer is configured, every evaluation emits an audit event
+      # before the result is returned. This satisfies the audit completeness rule
+      # from 003-TQ-STND-governance-model.md Section 5.
       def evaluate(caller_id:, capability_name:, context: {})
         capability_name = capability_name.to_sym
         caller_id = String(caller_id)
 
-        check_capability_known(caller_id, capability_name) ||
-          check_caller_granted(caller_id, capability_name) ||
-          check_prerequisites(caller_id, capability_name, context) ||
-          allow_with_prerequisites(caller_id, capability_name)
+        result = check_capability_known(caller_id, capability_name) ||
+                 check_caller_granted(caller_id, capability_name) ||
+                 check_prerequisites(caller_id, capability_name, context) ||
+                 allow_with_prerequisites(caller_id, capability_name)
+
+        emit_audit(result, context)
+        result
       end
 
       private
@@ -88,6 +97,23 @@ module Wild
           caller_id: caller_id,
           prerequisites_checked: checked
         )
+      end
+
+      # Emit audit event if a writer is configured.
+      # Called after every evaluation, before the result is returned to the caller.
+      # Audit failures are silently swallowed — a broken audit log must not
+      # cause the gate to raise exceptions (fail-closed still applies).
+      def emit_audit(result, context)
+        return unless @audit_writer
+
+        event = Audit::Event.from_evaluation(
+          result, registry: @registry, session_id: @session_id, context: context
+        )
+        @audit_writer.write(event)
+      rescue StandardError
+        # Audit write failure must not break evaluation.
+        # The result has already been computed; swallow and continue.
+        nil
       end
     end
   end

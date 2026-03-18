@@ -20,7 +20,7 @@ See `../CLAUDE.md` for ecosystem-level context.
 
 ## Status
 
-**Epic 5 complete** — capability registry, rule evaluator, prerequisite checking, and session-scoped evaluation caching are implemented. Sessions cache evaluation results with TTL-based expiry so repeated checks within a session avoid re-running the full pipeline. Ready for Epic 6 (Audit Trail).
+**Epic 6 complete** — capability registry, rule evaluator, prerequisite checking, session-scoped caching, and structured audit trail are implemented. Every evaluation produces a JSON Lines audit event recording caller, capability, risk level, result, and prerequisites checked. Ready for Epic 7 (Error Handling Hardening).
 
 - Canonical blueprint: `000-docs/001-PP-PLAN-repo-blueprint.md`
 - Capability model: `000-docs/002-AT-STND-capability-model.md`
