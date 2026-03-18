@@ -20,7 +20,7 @@ See `../CLAUDE.md` for ecosystem-level context.
 
 ## Status
 
-**Epic 1 complete** — repo foundation established, gem skeleton and test harness in place. Ready for Epic 2 (Capability Registry).
+**Epic 4 complete** — capability registry, rule evaluator, and prerequisite checking are implemented. The full evaluation pipeline (capability known? → caller granted? → prerequisites satisfied? → allow) is operational. Ready for Epic 5 (Session-Scoped State).
 
 - Canonical blueprint: `000-docs/001-PP-PLAN-repo-blueprint.md`
 - Capability model: `000-docs/002-AT-STND-capability-model.md`
