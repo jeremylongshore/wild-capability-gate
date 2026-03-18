@@ -20,7 +20,7 @@ See `../CLAUDE.md` for ecosystem-level context.
 
 ## Status
 
-**Epic 4 complete** — capability registry, rule evaluator, and prerequisite checking are implemented. The full evaluation pipeline (capability known? → caller granted? → prerequisites satisfied? → allow) is operational. Ready for Epic 5 (Session-Scoped State).
+**Epic 5 complete** — capability registry, rule evaluator, prerequisite checking, and session-scoped evaluation caching are implemented. Sessions cache evaluation results with TTL-based expiry so repeated checks within a session avoid re-running the full pipeline. Ready for Epic 6 (Audit Trail).
 
 - Canonical blueprint: `000-docs/001-PP-PLAN-repo-blueprint.md`
 - Capability model: `000-docs/002-AT-STND-capability-model.md`
