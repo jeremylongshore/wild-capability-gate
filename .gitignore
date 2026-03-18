@@ -16,6 +16,15 @@ pkg/
 # RSpec
 .rspec_status
 
+# Secrets / credentials (defensive)
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+**/service-account*.json
+secrets.yml
+
 # IDE
 .idea/
 .vscode/
