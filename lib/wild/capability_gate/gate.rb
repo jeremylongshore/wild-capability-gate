@@ -62,7 +62,7 @@ module Wild
 
       def deny_with_error(caller_value, capability, error)
         EvaluationResult.denied(
-          capability_name: capability,
+          capability_name: capability || :unknown,
           caller_id: String(caller_value),
           reason: :evaluation_error,
           details: "evaluation failed: #{error.class}"
