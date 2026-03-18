@@ -9,7 +9,7 @@ This file provides guidance to Claude Code when working in this repository.
 - **Archetype:** D — Coordination / Registry
 - **Mission:** Governed access control for sensitive AI tool capabilities across the Wild ecosystem
 - **Language:** Ruby (gem)
-- **Status:** Epic 6 complete — structured audit trail for every capability evaluation
+- **Status:** Epic 7 complete — public interface stabilized for consuming repos
 
 ## What This Repo Does
 

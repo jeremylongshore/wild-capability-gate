@@ -7,6 +7,7 @@
 | 003 | 003-TQ-STND-governance-model.md | TQ — Testing & Quality | STND | Governance model — fail-closed rule, safety constraints, defect definitions |
 | 004 | 004-AT-ADEC-architecture-decisions.md | AT — Architecture & Technical | ADEC | 6 architecture decisions — gem vs service, YAML vs DB, session scope, fail-closed, minimal API, string identity |
 | 005 | 005-PP-PLAN-epic-build-plan.md | PP — Product & Planning | PLAN | Canonical 10-epic build plan — sequenced execution story |
+| 006 | 006-AT-STND-interface-contract.md | AT — Architecture & Technical | STND | Public interface contract — method signatures, return types, stability guarantees |
 
 ## Category Reference
 

@@ -20,7 +20,7 @@ See `../CLAUDE.md` for ecosystem-level context.
 
 ## Status
 
-**Epic 6 complete** — capability registry, rule evaluator, prerequisite checking, session-scoped caching, and structured audit trail are implemented. Every evaluation produces a JSON Lines audit event recording caller, capability, risk level, result, and prerequisites checked. Ready for Epic 7 (Error Handling Hardening).
+**Epic 7 complete** — the full pipeline is implemented and wrapped in a stable public interface. Consuming repos can integrate via `Wild::CapabilityGate.new(config_path:)`, call `gate.evaluate(caller:, capability:, context:)`, and inspect `gate.capabilities`. Fail-closed error handling ensures evaluation errors return denial, never raise. Ready for Epic 8 (Safety Testing).
 
 - Canonical blueprint: `000-docs/001-PP-PLAN-repo-blueprint.md`
 - Capability model: `000-docs/002-AT-STND-capability-model.md`
