@@ -20,7 +20,7 @@ See `../CLAUDE.md` for ecosystem-level context.
 
 ## Status
 
-**Epic 7 complete** — the full pipeline is implemented and wrapped in a stable public interface. Consuming repos can integrate via `Wild::CapabilityGate.new(config_path:)`, call `gate.evaluate(caller:, capability:, context:)`, and inspect `gate.capabilities`. Fail-closed error handling ensures evaluation errors return denial, never raise. Ready for Epic 8 (Safety Testing).
+**Epic 8 complete** — all 5 governance rules and all 7 safety defect conditions from the governance model are verified by adversarial tests. One fail-closed gap was found and fixed (nil capability in error handler). The gate is proven safe for consumer integration. Ready for Epic 9 (MVP Packaging).
 
 - Canonical blueprint: `000-docs/001-PP-PLAN-repo-blueprint.md`
 - Capability model: `000-docs/002-AT-STND-capability-model.md`

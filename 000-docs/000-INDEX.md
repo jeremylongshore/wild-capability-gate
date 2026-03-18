@@ -8,6 +8,7 @@
 | 004 | 004-AT-ADEC-architecture-decisions.md | AT — Architecture & Technical | ADEC | 6 architecture decisions — gem vs service, YAML vs DB, session scope, fail-closed, minimal API, string identity |
 | 005 | 005-PP-PLAN-epic-build-plan.md | PP — Product & Planning | PLAN | Canonical 10-epic build plan — sequenced execution story |
 | 006 | 006-AT-STND-interface-contract.md | AT — Architecture & Technical | STND | Public interface contract — method signatures, return types, stability guarantees |
+| 007 | 007-TQ-SECU-evaluation-strategy.md | TQ — Testing & Quality | SECU | Safety evaluation strategy — governance rule and defect condition test coverage |
 
 ## Category Reference
 
