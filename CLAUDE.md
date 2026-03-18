@@ -9,7 +9,7 @@ This file provides guidance to Claude Code when working in this repository.
 - **Archetype:** D — Coordination / Registry
 - **Mission:** Governed access control for sensitive AI tool capabilities across the Wild ecosystem
 - **Language:** Ruby (gem)
-- **Status:** Epic 9 complete — MVP packaged with operator docs, config reference, integration guide
+- **Status:** v1 complete — all 10 epics implemented, tested, documented, and verified
 
 ## What This Repo Does
 
@@ -65,6 +65,11 @@ bundle exec rubocop     # Lint
 | `000-docs/003-TQ-STND-governance-model.md` | Safety constraints and defect definitions |
 | `000-docs/004-AT-ADEC-architecture-decisions.md` | Key decisions: gem not service, YAML not DB, session-scoped state |
 | `000-docs/005-PP-PLAN-epic-build-plan.md` | 10-epic build plan |
+| `000-docs/006-AT-STND-interface-contract.md` | Public interface contract and stability guarantees |
+| `000-docs/008-OD-GUID-configuration-reference.md` | Configuration reference for capabilities.yml and grants.yml |
+| `000-docs/009-OD-GUID-operator-workflow.md` | Operator workflow guide |
+| `000-docs/010-OD-GUID-consumer-integration.md` | Consumer integration guide |
+| `000-docs/011-PP-PLAN-expansion-roadmap.md` | v2 extension points and out-of-scope list |
 
 ## Task Tracking
 
