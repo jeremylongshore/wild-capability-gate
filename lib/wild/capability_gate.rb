@@ -15,8 +15,14 @@ require_relative 'capability_gate/audit/event'
 require_relative 'capability_gate/audit/json_lines_writer'
 require_relative 'capability_gate/session'
 require_relative 'capability_gate/session/store'
+require_relative 'capability_gate/gate'
 
 module Wild
   module CapabilityGate
+    # Convenience constructor — delegates to Gate.new.
+    # Usage: gate = Wild::CapabilityGate.new(config_path: "config/capability_gate")
+    def self.new(**)
+      Gate.new(**)
+    end
   end
 end
