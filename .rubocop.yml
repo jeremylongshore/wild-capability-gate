@@ -21,4 +21,11 @@ RSpec/MultipleExpectations:
   Max: 5
 
 RSpec/ExampleLength:
-  Max: 12
+  Max: 15
+
+RSpec/ContextWording:
+  Prefixes:
+    - when
+    - with
+    - without
+    - for
