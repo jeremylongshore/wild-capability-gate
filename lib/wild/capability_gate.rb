@@ -11,6 +11,8 @@ require_relative 'capability_gate/prerequisites/file_exists_checker'
 require_relative 'capability_gate/prerequisites/config_value_checker'
 require_relative 'capability_gate/prerequisites/checker'
 require_relative 'capability_gate/evaluator'
+require_relative 'capability_gate/session'
+require_relative 'capability_gate/session/store'
 
 module Wild
   module CapabilityGate
