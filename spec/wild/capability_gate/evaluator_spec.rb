@@ -242,6 +242,166 @@ RSpec.describe Wild::CapabilityGate::Evaluator do
     end
   end
 
+  describe 'audit emission' do
+    let(:log_file) { Tempfile.new(['audit', '.jsonl']) }
+    let(:audit_writer) { Wild::CapabilityGate::Audit::JsonLinesWriter.new(path: log_file.path) }
+
+    after { log_file.close! }
+
+    def audited_evaluator_from_files
+      described_class.from_files(
+        capabilities_path: capabilities_path,
+        grants_path: grants_path,
+        audit_writer: audit_writer,
+        session_id: 'test-session-001'
+      )
+    end
+
+    def parse_audit_log
+      File.readlines(log_file.path).map { |line| JSON.parse(line) }
+    end
+
+    context 'when allowed' do
+      # rubocop:disable RSpec/MultipleExpectations -- schema conformance test validates all fields together
+      it 'emits an audit event with result "allowed"' do
+        ev = audited_evaluator_from_files
+        ev.evaluate(
+          caller_id: 'service-account:introspection-agent',
+          capability_name: :basic_introspection
+        )
+
+        events = parse_audit_log
+        expect(events.size).to eq(1)
+        expect(events.first['event']).to eq('capability_evaluation')
+        expect(events.first['result']).to eq('allowed')
+        expect(events.first['caller_id']).to eq('service-account:introspection-agent')
+        expect(events.first['capability']).to eq('basic_introspection')
+        expect(events.first['risk_level']).to eq('standard')
+        expect(events.first['session_id']).to eq('test-session-001')
+        expect(events.first['reason']).to be_nil
+      end
+      # rubocop:enable RSpec/MultipleExpectations
+    end
+
+    context 'when denied (unknown capability)' do
+      it 'emits an audit event with result "denied" and reason' do
+        ev = audited_evaluator_from_files
+        ev.evaluate(
+          caller_id: 'service-account:introspection-agent',
+          capability_name: :nonexistent
+        )
+
+        events = parse_audit_log
+        expect(events.size).to eq(1)
+        expect(events.first['result']).to eq('denied')
+        expect(events.first['reason']).to eq('unknown_capability')
+        expect(events.first['risk_level']).to eq('unknown')
+      end
+    end
+
+    context 'when denied (not granted)' do
+      it 'emits an audit event with result "denied" and reason' do
+        ev = audited_evaluator_from_files
+        ev.evaluate(
+          caller_id: 'service-account:introspection-agent',
+          capability_name: :admin_tools
+        )
+
+        events = parse_audit_log
+        expect(events.size).to eq(1)
+        expect(events.first['result']).to eq('denied')
+        expect(events.first['reason']).to eq('not_granted')
+        expect(events.first['risk_level']).to eq('critical')
+      end
+    end
+
+    context 'when denied (prerequisite not met)' do
+      it 'emits an audit event with prerequisites_passed false' do
+        prereqs = [Wild::CapabilityGate::Prerequisite.new(type: :file_exists, path: '/nonexistent/file.md')]
+        capability = Wild::CapabilityGate::Capability.new(
+          name: :gated_capability, description: 'Test', risk_level: :elevated, prerequisites: prereqs
+        )
+        grants = [Wild::CapabilityGate::Grant.new(caller_id: 'service-account:test', capabilities: [:gated_capability])]
+        ev = described_class.new(
+          registry: Wild::CapabilityGate::Registry.new([capability]),
+          grants: grants, audit_writer: audit_writer, session_id: 'test-session-001'
+        )
+
+        ev.evaluate(caller_id: 'service-account:test', capability_name: :gated_capability)
+
+        events = parse_audit_log
+        expect(events.size).to eq(1)
+        expect(events.first['result']).to eq('denied')
+        expect(events.first['reason']).to eq('prerequisite_not_met')
+        expect(events.first['prerequisites_passed']).to be false
+      end
+    end
+
+    context 'with multiple evaluations' do
+      it 'appends one audit event per evaluation' do
+        ev = audited_evaluator_from_files
+
+        ev.evaluate(caller_id: 'agent-1', capability_name: :basic_introspection)
+        ev.evaluate(caller_id: 'agent-2', capability_name: :nonexistent)
+        ev.evaluate(caller_id: 'agent-3', capability_name: :admin_tools)
+
+        events = parse_audit_log
+        expect(events.size).to eq(3)
+        expect(events.map { |e| e['caller_id'] }).to eq(%w[agent-1 agent-2 agent-3])
+      end
+    end
+
+    context 'with context parameter' do
+      it 'captures context in the audit event' do
+        ev = audited_evaluator_from_files
+        ev.evaluate(
+          caller_id: 'service-account:introspection-agent',
+          capability_name: :basic_introspection,
+          context: { 'env' => 'production' }
+        )
+
+        events = parse_audit_log
+        expect(events.first['context']).to eq({ 'env' => 'production' })
+      end
+    end
+
+    context 'when no audit writer is configured' do
+      it 'does not write any audit log' do
+        ev = described_class.from_files(
+          capabilities_path: capabilities_path,
+          grants_path: grants_path
+        )
+
+        ev.evaluate(
+          caller_id: 'service-account:introspection-agent',
+          capability_name: :basic_introspection
+        )
+
+        expect(File.size(log_file.path)).to eq(0)
+      end
+    end
+
+    context 'when audit writer raises an error' do
+      it 'still returns the evaluation result (audit failure does not break evaluation)' do
+        broken_writer = instance_double(Wild::CapabilityGate::Audit::JsonLinesWriter)
+        allow(broken_writer).to receive(:write).and_raise(IOError, 'disk full')
+
+        ev = described_class.new(
+          registry: Wild::CapabilityGate::Registry.from_file(capabilities_path),
+          grants: Wild::CapabilityGate::Evaluator::GrantLoader.load_file(grants_path),
+          audit_writer: broken_writer
+        )
+
+        result = ev.evaluate(
+          caller_id: 'service-account:introspection-agent',
+          capability_name: :basic_introspection
+        )
+
+        expect(result).to be_allowed
+      end
+    end
+  end
+
   def build_evaluator_with_prereq(prereq_path:)
     prereqs = [Wild::CapabilityGate::Prerequisite.new(type: :file_exists, path: prereq_path)]
     build_evaluator_for(
