@@ -4,6 +4,8 @@
 
 Governed access control for sensitive AI tool capabilities.
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U5S225PTME)
+
 ## What it does
 
 A Ruby gem that gates access to privileged operations. Before a consuming repo executes a sensitive tool, it asks the gate: "Is this caller allowed to do this?" The gate checks grants, evaluates prerequisites, and returns an allowed/denied result.
