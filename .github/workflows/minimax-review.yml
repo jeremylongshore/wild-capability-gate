@@ -16,8 +16,8 @@ name: 'MiniMax Code Review'
 # job's `needs`, and neither blocks a merge. The deterministic gate is the `CI`
 # workflow: `bundle exec rspec` and `bundle exec rubocop` on Ruby 3.2 and 3.3.
 # REVIEW.md at the repo root is the reviewer law; both prompts below are
-# distillations of it for a diff-scoped reviewer (the action fetches the PR diff
-# through the API and never checks out or executes pull request code).
+# distillations of it for a diff-scoped reviewer. Neither job below has a
+# checkout step, so pull request code is never checked out or executed here.
 #
 # The action is our maintained fork (jeremylongshore/minimax-code-review),
 # SHA-pinned per supply-chain policy: it adds per-reviewer sticky comments
@@ -92,10 +92,12 @@ jobs:
             details string, then ordinary correctness. THE INVARIANTS, none of
             which may regress: (1) FAIL CLOSED means every abnormal outcome
             (missing config, unreadable file, unknown prerequisite type, checker
-            exception, nil caller, nil capability) resolves to a denial carrying a
-            reason symbol; Gate#evaluate and Evaluator#evaluate return an
-            EvaluationResult and never raise, and Gate#evaluate rescues
-            StandardError into a denial with reason :evaluation_error. Flag a
+            exception, nil caller, nil capability) resolves at the Gate boundary
+            to a denial carrying a reason symbol. Gate#evaluate always returns an
+            EvaluationResult and never raises because it rescues StandardError
+            into a denial with reason :evaluation_error; Evaluator#evaluate has no
+            rescue of its own and raises on a nil capability_name, so it is fail
+            closed only because Gate wraps it. Flag a
             rescue narrowed from StandardError, a new path that can raise past it,
             a checker returning nil instead of a CheckResult, and any reordering of
             the check chain in Evaluator#evaluate that could reach
@@ -111,15 +113,19 @@ jobs:
             mode, override flag, force keyword, or environment bypass, and a new
             checker must fail closed inside its own rescue. (4) AUDIT ON EVERY
             PATH: Evaluator#evaluate computes the result then calls emit_audit
-            before returning; a new early return above emit_audit creates a silent
-            evaluation path. emit_audit deliberately swallows write failures and
-            must not become a broader swallow; JsonLinesWriter must stay
-            append-only. (5) IMMUTABLE AFTER CONSTRUCTION: Capability, Grant,
+            before returning; a new early return above emit_audit, or a denial
+            built outside Evaluator#evaluate, creates a silent evaluation path.
+            Two limits are already true and must not be assumed away: emit_audit
+            no-ops when no audit_writer is configured, and the :evaluation_error
+            denial from Gate#evaluate rescue is not audited today. emit_audit
+            deliberately swallows write failures and must not become a broader
+            swallow; JsonLinesWriter must stay append-only. (5) IMMUTABLE AFTER CONSTRUCTION: Capability, Grant,
             Prerequisite, Evaluator, Registry and JsonLinesWriter all freeze; a new
             writer, attr_writer or runtime config reload lets an agent escalate its
             own capabilities mid-session. (6) HOSTILE CONFIG PARSING:
-            Registry::ConfigLoader must keep YAML.safe_load with permitted_classes
-            [Symbol]; a move to YAML.load, unsafe_load, aliases:true, or a widened
+            both YAML entry points, Registry::ConfigLoader for capabilities.yml and
+            Evaluator::GrantLoader for grants.yml, must keep YAML.safe_load with
+            permitted_classes [Symbol]; a move to YAML.load, unsafe_load, aliases:true, or a widened
             permitted_classes is a deserialization hole in an operator-edited file
             and is blocking. (7) PUBLIC SURFACE stays Gate#evaluate and
             Gate#capabilities; a new public method needs a matching change to
