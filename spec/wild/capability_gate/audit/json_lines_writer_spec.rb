@@ -3,7 +3,7 @@
 require 'json'
 require 'tempfile'
 
-# rubocop:disable RSpec/MultipleMemoizedHelpers -- integration test needs registry + event chain
+# rubocop:disable-next RSpec/MultipleMemoizedHelpers -- integration test needs registry + event chain
 RSpec.describe Wild::CapabilityGate::Audit::JsonLinesWriter do
   let(:log_file) { Tempfile.new(['audit', '.jsonl']) }
   let(:writer) { described_class.new(path: log_file.path) }
@@ -97,4 +97,3 @@ RSpec.describe Wild::CapabilityGate::Audit::JsonLinesWriter do
     end
   end
 end
-# rubocop:enable RSpec/MultipleMemoizedHelpers

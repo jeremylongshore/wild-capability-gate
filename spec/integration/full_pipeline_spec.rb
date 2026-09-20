@@ -10,7 +10,7 @@ require 'json'
 # audit writer) work together correctly through the Gate facade.
 #
 # See Epic 7, task 2gvy.
-# rubocop:disable RSpec/DescribeClass -- integration test, not a class-level spec
+# rubocop:disable-next RSpec/DescribeClass -- integration test, not a class-level spec
 RSpec.describe 'Full pipeline integration' do
   let(:config_path) { File.expand_path('../fixtures/config', __dir__) }
   let(:audit_log) { Tempfile.new(['audit-integration', '.jsonl']) }
@@ -30,7 +30,7 @@ RSpec.describe 'Full pipeline integration' do
   end
 
   describe 'allowed evaluation produces correct audit event' do
-    # rubocop:disable RSpec/MultipleExpectations, RSpec/ExampleLength -- integration test validates full pipeline
+    # rubocop:disable-next RSpec/MultipleExpectations, RSpec/ExampleLength -- integration test validates full pipeline
     it 'grants capability and logs the decision' do
       result = gate.evaluate(
         caller: 'service-account:introspection-agent',
@@ -53,7 +53,6 @@ RSpec.describe 'Full pipeline integration' do
       expect(event['session_id']).to eq('integration-test-session')
       expect(event['reason']).to be_nil
     end
-    # rubocop:enable RSpec/MultipleExpectations, RSpec/ExampleLength
   end
 
   describe 'denied evaluation (unknown capability) produces correct audit event' do
@@ -172,4 +171,3 @@ RSpec.describe 'Full pipeline integration' do
     end
   end
 end
-# rubocop:enable RSpec/DescribeClass

@@ -262,7 +262,7 @@ RSpec.describe Wild::CapabilityGate::Evaluator do
     end
 
     context 'when allowed' do
-      # rubocop:disable RSpec/MultipleExpectations -- schema conformance test validates all fields together
+      # rubocop:disable-next RSpec/MultipleExpectations -- schema conformance test validates all fields together
       it 'emits an audit event with result "allowed"' do
         ev = audited_evaluator_from_files
         ev.evaluate(
@@ -280,7 +280,6 @@ RSpec.describe Wild::CapabilityGate::Evaluator do
         expect(events.first['session_id']).to eq('test-session-001')
         expect(events.first['reason']).to be_nil
       end
-      # rubocop:enable RSpec/MultipleExpectations
     end
 
     context 'when denied (unknown capability)' do

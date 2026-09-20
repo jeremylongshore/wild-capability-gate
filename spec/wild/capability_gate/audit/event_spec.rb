@@ -139,7 +139,7 @@ RSpec.describe Wild::CapabilityGate::Audit::Event do
       )
     end
 
-    # rubocop:disable RSpec/MultipleExpectations, RSpec/ExampleLength -- schema conformance test validates all fields together
+    # rubocop:disable-next RSpec/MultipleExpectations, RSpec/ExampleLength -- schema conformance test validates all fields together
     it 'produces a hash matching Doc 002 Section 8 schema' do
       event = described_class.from_evaluation(
         result,
@@ -161,7 +161,6 @@ RSpec.describe Wild::CapabilityGate::Audit::Event do
       expect(h['session_id']).to eq('sess-001')
       expect(h['context']).to eq({ 'env' => 'test' })
     end
-    # rubocop:enable RSpec/MultipleExpectations, RSpec/ExampleLength
 
     it 'formats timestamp as ISO 8601 UTC with milliseconds' do
       event = described_class.from_evaluation(result, registry: registry)

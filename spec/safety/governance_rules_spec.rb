@@ -15,7 +15,7 @@ require 'json'
 #
 # See Epic 8 and 003-TQ-STND-governance-model.md.
 
-# rubocop:disable RSpec/DescribeClass -- safety test suite, not class-level spec
+# rubocop:disable-next RSpec/DescribeClass -- safety test suite, not class-level spec
 RSpec.describe 'Governance rules (003-TQ-STND-governance-model.md)' do
   let(:config_path) { File.expand_path('../fixtures/config', __dir__) }
   let(:audit_log) { Tempfile.new(['safety-audit', '.jsonl']) }
@@ -274,4 +274,3 @@ RSpec.describe 'Governance rules (003-TQ-STND-governance-model.md)' do
     end
   end
 end
-# rubocop:enable RSpec/DescribeClass

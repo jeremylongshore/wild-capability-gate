@@ -11,7 +11,7 @@ require 'json'
 #
 # See Epic 8.
 
-# rubocop:disable RSpec/DescribeClass -- safety defect suite, not class-level spec
+# rubocop:disable-next RSpec/DescribeClass -- safety defect suite, not class-level spec
 RSpec.describe 'Safety defect conditions (003-TQ-STND Section 6)' do
   let(:config_path) { File.expand_path('../fixtures/config', __dir__) }
   let(:audit_log) { Tempfile.new(['defect-audit', '.jsonl']) }
@@ -244,4 +244,3 @@ RSpec.describe 'Safety defect conditions (003-TQ-STND Section 6)' do
     end
   end
 end
-# rubocop:enable RSpec/DescribeClass
